@@ -29,6 +29,10 @@ def get_documents(db:Session, skip:int = 0, limit:int = 100, search_query:str | 
         
     return query.offset(skip).limit(limit).all()
 
+# --- NEW FUNCTION ADDED HERE ---
+def get_document(db: Session, document_id: int):
+    return db.query(models.Document).filter(models.Document.id == document_id).first()
+
 def create_comment(db:Session, document_id:int, comment:schemas.CommentCreate):
     db_comment = models.Comment(**comment.model_dump(), document_id=document_id)
     db.add(db_comment)
