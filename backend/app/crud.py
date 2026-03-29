@@ -43,8 +43,20 @@ def create_comment(db:Session, document_id:int, comment:schemas.CommentCreate):
 def delete_document(db: Session, document_id: int):
     db_document = db.query(models.Document).filter(models.Document.id == document_id).first()
     if db_document:
-        file_path = db_document.file_path # Save path before deleting record
+        file_path = db_document.file_path
+        
+        # Capture tags before document is deleted
+        tags_to_check = list(db_document.tags)
+        
         db.delete(db_document)
+        db.commit()
+
+        # --- ORPHAN CHECK FOR ALL TAGS ---
+        for tag in tags_to_check:
+            # Re-fetch tag to check its current relationships
+            if not tag.documents:
+                db.delete(tag)
+        
         db.commit()
         return file_path
     return None
@@ -82,18 +94,21 @@ def delete_comment(db: Session, comment_id: int):
 
 # --- Unlink a tag from a document (Removes row in document_tags table) ---
 def remove_tag_from_document(db: Session, document_id: int, tag_id: int):
-    # 1. Fetch the document and the specific tag
     document = db.query(models.Document).filter(models.Document.id == document_id).first()
     tag = db.query(models.Tag).filter(models.Tag.id == tag_id).first()
 
     if document and tag:
-        # 2. REMOVE ONLY THE RELATIONSHIP
-        # This only deletes the row in the 'document_tags' table
         if tag in document.tags:
             document.tags.remove(tag)
             db.commit()
-            db.refresh(document)
             
+            # --- ORPHAN CHECK ---
+            # If this tag is no longer linked to ANY document, delete the tag itself
+            if not tag.documents:
+                db.delete(tag)
+                db.commit()
+            
+            db.refresh(document)
     return document
 
 # --- Delete a tag globally (Removes from all docs and system) ---
