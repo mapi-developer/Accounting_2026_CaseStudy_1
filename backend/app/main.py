@@ -1,5 +1,5 @@
 # backend/app/main.py
-from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
+from fastapi import FastAPI, Depends, HTTPException, Query, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles # NEW IMPORT
 from sqlalchemy.orm import Session
@@ -64,9 +64,14 @@ def delete_document_endpoint(document_id: int, db: Session = Depends(database.ge
     return {"message": "Document deleted successfully"}
 
 @app.get("/documents/", response_model=list[schemas.Document])
-def read_documents(skip: int = 0, limit: int = 100, search: str = None, db: Session = Depends(database.get_db)):
-    docs = crud.get_documents(db, skip=skip, limit=limit, search_query=search)
-    return docs
+def read_documents(
+    skip: int = 0, 
+    limit: int = 100, 
+    search: str | None = None, 
+    tags: list[str] | None = Query(None), # Accepts ?tags=Invoice&tags=Urgent
+    db: Session = Depends(database.get_db)
+):
+    return crud.get_documents(db, skip=skip, limit=limit, search_query=search, tags=tags)
 
 # --- NEW ENDPOINT ADDED HERE ---
 @app.get("/documents/{document_id}", response_model=schemas.Document)

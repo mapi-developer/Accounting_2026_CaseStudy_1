@@ -15,18 +15,19 @@ def create_document(db:Session, filename:str, file_path:str, extracted_text:str)
     db.refresh(db_document)
     return db_document
 
-def get_documents(db:Session, skip:int = 0, limit:int = 100, search_query:str | None = None):
+# backend/app/crud.py
+def get_documents(db: Session, skip: int = 0, limit: int = 100, search_query: str | None = None, tags: list[str] | None = None):
     query = db.query(models.Document)
-    
-    # This is the magic for your Full-Text Search inside the PDFs
     if search_query:
         query = query.filter(
             or_(
                 models.Document.filename.ilike(f"%{search_query}%"),
-                models.Document.extracted_text.ilike(f"%{search_query}%")
+                models.Document.extracted_text.ilike(f"%{search_query}%") # Deep text search
             )
         )
-        
+    if tags:
+        for tag_name in tags:
+            query = query.filter(models.Document.tags.any(models.Tag.name == tag_name))
     return query.offset(skip).limit(limit).all()
 
 def get_document(db: Session, document_id: int):

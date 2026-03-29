@@ -92,7 +92,7 @@ export default function TagManager({
               <button 
                 key={tag.id}
                 onClick={() => handleAttachExisting(tag.id)}
-                className="px-2 py-1 border rounded hover:bg-white"
+                className="px-2 py-1 border rounded hover:bg-white text-black"
               >
                 {tag.name}
               </button>
