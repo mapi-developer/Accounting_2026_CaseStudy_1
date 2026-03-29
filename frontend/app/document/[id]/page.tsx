@@ -103,7 +103,7 @@ export default function DocumentPage() {
 
           <div className="mt-auto pt-4 bg-white">
             <textarea
-              className="w-full rounded-lg border border-gray-300 p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+              className="w-full rounded-lg border border-gray-300 p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none text-black"
               rows={3}
               placeholder="Add a finding or note..."
               value={newComment}

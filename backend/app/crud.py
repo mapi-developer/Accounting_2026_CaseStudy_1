@@ -29,7 +29,6 @@ def get_documents(db:Session, skip:int = 0, limit:int = 100, search_query:str | 
         
     return query.offset(skip).limit(limit).all()
 
-# --- NEW FUNCTION ADDED HERE ---
 def get_document(db: Session, document_id: int):
     return db.query(models.Document).filter(models.Document.id == document_id).first()
 
@@ -39,3 +38,12 @@ def create_comment(db:Session, document_id:int, comment:schemas.CommentCreate):
     db.commit()
     db.refresh(db_comment)
     return db_comment
+
+def delete_document(db: Session, document_id: int):
+    db_document = db.query(models.Document).filter(models.Document.id == document_id).first()
+    if db_document:
+        file_path = db_document.file_path # Save path before deleting record
+        db.delete(db_document)
+        db.commit()
+        return file_path
+    return None

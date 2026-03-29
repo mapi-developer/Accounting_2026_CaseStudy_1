@@ -50,6 +50,19 @@ async def upload_documents(files: List[UploadFile] = File(...), db: Session = De
         
     return uploaded_docs
 
+@app.delete("/documents/{document_id}")
+def delete_document_endpoint(document_id: int, db: Session = Depends(database.get_db)):
+    file_path = crud.delete_document(db, document_id)
+    
+    if file_path is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    # Delete the physical file from the disk
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        
+    return {"message": "Document deleted successfully"}
+
 @app.get("/documents/", response_model=list[schemas.Document])
 def read_documents(skip: int = 0, limit: int = 100, search: str = None, db: Session = Depends(database.get_db)):
     docs = crud.get_documents(db, skip=skip, limit=limit, search_query=search)
