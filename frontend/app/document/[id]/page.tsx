@@ -130,12 +130,12 @@ export default function DocumentPage() {
             <p className="text-xs text-gray-400 italic">No notes yet.</p>
           ) : (
             document.comments.map((comment: any) => (
-              <div key={comment.id} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+              <div key={comment.id} className="group relative bg-gray-50 p-3 pr-8 rounded-lg border border-gray-100">
                 <p className="text-xs text-gray-800 leading-relaxed">{comment.content}</p>
-                {/* Delete Comment Button */}
                 <button 
                   onClick={() => handleDeleteComment(comment.id)}
-                  className="absolute top-2 right-2 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
+                  className="absolute top-2 right-2 text-gray-400 opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-red-500 transition-all p-1"
+                  title="Delete Note"
                 >
                   ✕
                 </button>
