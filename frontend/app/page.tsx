@@ -46,31 +46,30 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <header className="mb-12">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Accounting Case Study</h1>
-          {/* Upload Button Restored */}
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8"> {/* Responsive padding */}
+      <header className="mb-8 md:mb-12">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Accounting Case Study</h1>
           <FileUpload onUploadSuccess={() => fetchDocs()} />
         </div>
         
-        {/* Advanced Filter Bar Restored */}
-        <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border">
+        {/* Search & Filter Bar: Stacked on mobile, side-by-side on desktop */}
+        <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <div className="flex-1">
-            <label className="text-xs font-semibold text-gray-500 uppercase">Search Content & Names</label>
+            <label className="text-[10px] font-bold text-black uppercase tracking-wider">Search Content</label>
             <input
               type="text"
-              placeholder="Search words inside PDFs..."
+              placeholder="Search words inside..."
               className="w-full mt-1 border-none focus:ring-0 text-sm text-black"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex-1 border-l pl-4">
-            <label className="text-xs font-semibold text-gray-500 uppercase">Filter by Tags</label>
+          <div className="flex-1 border-t md:border-t-0 md:border-l pt-3 md:pt-0 md:pl-4">
+            <label className="text-[10px] font-bold text-black uppercase tracking-wider">Tags</label>
             <input
               type="text"
-              placeholder="e.g. Invoice, Q1..."
+              placeholder="e.g. Invoice, Q1"
               className="w-full mt-1 border-none focus:ring-0 text-sm text-black"
               value={tagFilter}
               onChange={(e) => setTagFilter(e.target.value)}
@@ -78,7 +77,7 @@ export default function Home() {
           </div>
           <button 
             onClick={() => fetchDocs(search)}
-            className="bg-blue-600 text-white px-8 py-2 rounded-lg font-medium hover:bg-blue-700"
+            className="w-full md:w-auto bg-blue-600 text-white px-8 py-3 md:py-2 rounded-lg font-medium active:scale-95 transition-transform"
           >
             Apply Filters
           </button>
@@ -86,7 +85,7 @@ export default function Home() {
       </header>
 
       {/* Document Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {documents.map((doc) => (
           <div key={doc.id} className="relative rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-md transition-all">
             {/* Delete Button */}

@@ -1,4 +1,3 @@
-// frontend/app/document/[id]/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,19 +6,43 @@ import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
-import TagManager from "@/components/TagManager";
+
+// Ensure this path matches your folder structure
+import TagManager from "@/components/TagManager"; 
 
 export default function DocumentPage() {
   const params = useParams();
   const router = useRouter();
-  
-  // Unwrap the params.id correctly for Next.js 14/15
   const documentId = Array.isArray(params?.id) ? params.id[0] : params?.id;
-  
-  const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
   const [document, setDocument] = useState<any>(null);
   const [newComment, setNewComment] = useState("");
+  
+  // Initialize the PDF layout plugin
+  const defaultLayoutPluginInstance = defaultLayoutPlugin();
+
+  useEffect(() => {
+    if (!documentId) return;
+    fetch(`http://localhost:8000/documents/${documentId}`)
+      .then((res) => res.json())
+      .then((data) => setDocument(data))
+      .catch((err) => console.error("Error fetching document:", err));
+  }, [documentId]);
+
+  // --- STRICT PRESERVATION: Note Saving Logic ---
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !documentId) return;
+    const res = await fetch(`http://localhost:8000/documents/${documentId}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ content: newComment }),
+    });
+    if (res.ok) {
+      const addedComment = await res.json();
+      setDocument({ ...document, comments: [...(document.comments || []), addedComment] });
+      setNewComment("");
+    }
+  };
 
   const handleDeleteComment = async (commentId: number) => {
     const res = await fetch(`http://localhost:8000/comments/${commentId}`, { method: "DELETE" });
@@ -31,63 +54,68 @@ export default function DocumentPage() {
     }
   };
 
-  useEffect(() => {
-    if (!documentId) return;
+  // --- NEW: Handle Document Deletion from inside the viewer ---
+  const handleDeleteDocument = async () => {
+    if (!confirm("Are you sure you want to completely delete this document and all its notes?")) return;
     
-    // Fetch the single document data
-    fetch(`http://localhost:8000/documents/${documentId}`)
-      .then((res) => res.json())
-      .then((data) => setDocument(data))
-      .catch((err) => console.error("Error fetching document:", err));
-  }, [documentId]);
-
-  const handleAddComment = async () => {
-    if (!newComment.trim() || !documentId) return;
-    
-    const res = await fetch(`http://localhost:8000/documents/${documentId}/comments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: newComment }),
+    const res = await fetch(`http://localhost:8000/documents/${documentId}`, {
+      method: "DELETE",
     });
 
     if (res.ok) {
-      const addedComment = await res.json();
-      setDocument({ ...document, comments: [...(document.comments || []), addedComment] });
-      setNewComment("");
+      router.push('/'); // Route back to the dashboard automatically
+    } else {
+      alert("Failed to delete document");
     }
   };
 
-  if (!document) return <div className="p-8 flex justify-center mt-10">Loading document details...</div>;
+  if (!document) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-gray-50">
+        <p className="text-gray-500 animate-pulse font-medium">Loading Document...</p>
+      </div>
+    );
+  }
 
   const pdfUrl = `http://localhost:8000/files/${document.filename}`;
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* LEFT SIDE: PDF Viewer */}
-      <div className="w-2/3 border-r border-gray-200 bg-white relative">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-50 overflow-hidden">
+      
+      {/* LEFT/TOP SIDE: Inline PDF Viewer (Mobile: 60vh, Desktop: Full height) */}
+      <div className="h-[60vh] md:h-full md:w-2/3 border-b md:border-b-0 md:border-r border-gray-200 bg-white relative">
         <div className="absolute inset-0 overflow-y-auto">
-            <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}>
-                <Viewer fileUrl={pdfUrl} plugins={[defaultLayoutPluginInstance]} />
-            </Worker>
+          <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+            <Viewer fileUrl={pdfUrl} plugins={[defaultLayoutPluginInstance]} />
+          </Worker>
         </div>
       </div>
 
-      {/* RIGHT SIDE: Details, Tags, and Comments */}
-      <div className="w-1/3 flex flex-col h-full bg-white p-6 shadow-sm z-10">
-        <button onClick={() => router.push('/')} className="mb-6 text-sm text-blue-600 hover:underline w-fit">
-          &larr; Back to Dashboard
-        </button>
+      {/* RIGHT/BOTTOM SIDE: Sidebar (Mobile: 40vh, Desktop: Full height) */}
+      <div className="h-[40vh] md:h-full md:w-1/3 flex flex-col bg-white p-4 md:p-6 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] md:shadow-none z-20">
         
-        <h2 className="text-xl font-bold text-gray-900 mb-2 truncate" title={document.filename}>
+        {/* Header: Back Button & NEW Delete Button */}
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={() => router.push('/')} className="text-sm font-medium text-blue-600 hover:underline">
+            &larr; Back to Dashboard
+          </button>
+          
+          <button 
+            onClick={handleDeleteDocument} 
+            className="text-xs font-bold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-red-100"
+            title="Delete Document"
+          >
+            Delete File
+          </button>
+        </div>
+
+        <h2 className="text-sm font-bold text-gray-800 mb-4 truncate" title={document.filename}>
           {document.filename}
         </h2>
-        <p className="text-xs text-gray-500 mb-6">
-          Uploaded on {new Date(document.uploaded_at).toLocaleString()}
-        </p>
 
-        {/* Tags Section */}
-        <div className="mb-8 border-b pb-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Tags</h3>
+        {/* STRICT PRESERVATION: Tags Section */}
+        <div className="mb-4 border-b pb-4">
+          <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Tags</h3>
           <TagManager 
             documentId={document.id} 
             existingTags={document.tags || []} 
@@ -95,45 +123,44 @@ export default function DocumentPage() {
           />
         </div>
 
-        {/* Comments Section */}
-        <div className="flex-1 flex flex-col min-h-0">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Case Notes</h3>
-          
-          <div className="flex-1 overflow-y-auto mb-4 space-y-3 pr-2">
-            {!document.comments || document.comments.length === 0 ? (
-              <p className="text-sm text-gray-400 italic">No notes yet.</p>
-            ) : (
-              document.comments.map((comment: any) => (
-                <div key={comment.id} className="group bg-gray-50 p-3 rounded-lg border border-gray-100 relative">
-                  <p className="text-sm text-gray-800">{comment.content}</p>
-                  {/* Delete Comment Button */}
-                  <button 
-                    onClick={() => handleDeleteComment(comment.id)}
-                    className="absolute top-2 right-2 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-
-          <div className="mt-auto pt-4 bg-white">
-            <textarea
-              className="w-full rounded-lg border border-gray-300 p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none text-black"
-              rows={3}
-              placeholder="Add a finding or note..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-            />
-            <button 
-              onClick={handleAddComment}
-              className="mt-2 w-full rounded-lg bg-blue-600 py-2 text-white font-medium hover:bg-blue-700 transition-colors"
-            >
-              Save Note
-            </button>
-          </div>
+        {/* STRICT PRESERVATION: Comments Section */}
+        <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Notes</h3>
+        <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-1 scrollbar-thin">
+          {!document.comments || document.comments.length === 0 ? (
+            <p className="text-xs text-gray-400 italic">No notes yet.</p>
+          ) : (
+            document.comments.map((comment: any) => (
+              <div key={comment.id} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <p className="text-xs text-gray-800 leading-relaxed">{comment.content}</p>
+                {/* Delete Comment Button */}
+                <button 
+                  onClick={() => handleDeleteComment(comment.id)}
+                  className="absolute top-2 right-2 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
+                >
+                  ✕
+                </button>
+              </div>
+            ))
+          )}
         </div>
+
+        {/* STRICT PRESERVATION: Mobile-Optimized Input Area */}
+        <div className="mt-auto pt-2 bg-white">
+          <textarea
+            className="w-full rounded-lg border border-gray-200 p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none text-black"
+            rows={2}
+            placeholder="Add a case note..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+          />
+          <button 
+            onClick={handleAddComment} 
+            className="mt-2 w-full rounded-lg bg-blue-600 py-3 text-white font-semibold shadow-md active:bg-blue-700 active:scale-[0.98] transition-all text-sm"
+          >
+            Save Note
+          </button>
+        </div>
+        
       </div>
     </div>
   );
