@@ -3,6 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles # NEW IMPORT
 from sqlalchemy.orm import Session
+from typing import List
 import shutil
 import os
 
@@ -30,19 +31,24 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 # This allows the frontend to fetch the actual PDF files via HTTP
 app.mount("/files", StaticFiles(directory=UPLOAD_DIR), name="files")
 
-@app.post("/upload/", response_model=schemas.Document)
-async def upload_document(file: UploadFile = File(...), db: Session = Depends(database.get_db)):
-    # 1. Save the file locally
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+@app.post("/upload/", response_model=List[schemas.Document])
+async def upload_documents(files: List[UploadFile] = File(...), db: Session = Depends(database.get_db)):
+    uploaded_docs = []
     
-    # 2. Extract text from the PDF
-    extracted_text = extract_text_from_pdf(file_path)
-    
-    # 3. Save to Database
-    document = crud.create_document(db, file.filename, file_path, extracted_text)
-    return document
+    for file in files:
+        # 1. Save the file locally
+        file_path = os.path.join(UPLOAD_DIR, file.filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # 2. Extract text from the PDF
+        extracted_text = extract_text_from_pdf(file_path)
+        
+        # 3. Save to Database
+        document = crud.create_document(db, file.filename, file_path, extracted_text)
+        uploaded_docs.append(document)
+        
+    return uploaded_docs
 
 @app.get("/documents/", response_model=list[schemas.Document])
 def read_documents(skip: int = 0, limit: int = 100, search: str = None, db: Session = Depends(database.get_db)):
