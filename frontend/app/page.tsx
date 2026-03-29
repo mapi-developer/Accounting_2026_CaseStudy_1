@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import FileUpload from "@/components/FileUpload";
 
 interface Document {
@@ -62,9 +63,11 @@ export default function Home() {
               <h3 className="font-semibold text-gray-800 truncate">{doc.filename}</h3>
             </div>
             <p className="text-sm text-gray-500 mb-4">Uploaded: {new Date(doc.uploaded_at).toLocaleDateString()}</p>
-            <button className="w-full rounded-lg border border-blue-600 py-2 text-blue-600 font-medium hover:bg-blue-50">
-              View & Comment
-            </button>
+            <Link href={`/document/${doc.id}`}>
+              <button className="w-full rounded-lg border border-blue-600 py-2 text-blue-600 font-medium hover:bg-blue-50">
+                View & Comment
+              </button>
+            </Link>
           </div>
         ))}
       </div>
