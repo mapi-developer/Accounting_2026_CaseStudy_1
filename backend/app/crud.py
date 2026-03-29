@@ -71,3 +71,36 @@ def add_tag_to_document(db: Session, document_id: int, tag_id: int):
 
 def get_all_tags(db: Session):
     return db.query(models.Tag).all()
+
+def delete_comment(db: Session, comment_id: int):
+    db_comment = db.query(models.Comment).filter(models.Comment.id == comment_id).first()
+    if db_comment:
+        db.delete(db_comment)
+        db.commit()
+        return True
+    return False
+
+# --- Unlink a tag from a document (Removes row in document_tags table) ---
+def remove_tag_from_document(db: Session, document_id: int, tag_id: int):
+    # 1. Fetch the document and the specific tag
+    document = db.query(models.Document).filter(models.Document.id == document_id).first()
+    tag = db.query(models.Tag).filter(models.Tag.id == tag_id).first()
+
+    if document and tag:
+        # 2. REMOVE ONLY THE RELATIONSHIP
+        # This only deletes the row in the 'document_tags' table
+        if tag in document.tags:
+            document.tags.remove(tag)
+            db.commit()
+            db.refresh(document)
+            
+    return document
+
+# --- Delete a tag globally (Removes from all docs and system) ---
+def delete_tag_globally(db: Session, tag_id: int):
+    db_tag = db.query(models.Tag).filter(models.Tag.id == tag_id).first()
+    if db_tag:
+        db.delete(db_tag)
+        db.commit()
+        return True
+    return False

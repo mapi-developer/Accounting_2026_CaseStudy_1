@@ -29,6 +29,22 @@ export default function TagManager({
 
   useEffect(() => { fetchTags(); }, []);
 
+  const handleDeleteTag = async (tagId: number) => {
+    const res = await fetch(`http://localhost:8000/documents/${documentId}/tags/${tagId}`, {
+      method: "DELETE",
+    });
+
+    if (res.ok) {
+      const updatedDocument = await res.json();
+      
+      // CRITICAL: Update the parent state WITHOUT reloading the page.
+      // This keeps the PDF viewer open and only updates the tag list.
+      onTagAdded(updatedDocument); 
+    } else {
+      alert("Could not remove tag");
+    }
+  };
+
   const handleCreateAndAddTag = async () => {
     if (!newTagName.trim()) return;
 
@@ -70,10 +86,16 @@ export default function TagManager({
         {existingTags.map((tag) => (
           <span 
             key={tag.id} 
-            className="px-2 py-1 text-xs rounded-full text-white font-medium"
+            className="flex items-center gap-1 px-2 py-1 text-xs rounded-full text-white font-medium"
             style={{ backgroundColor: tag.color }}
           >
             {tag.name}
+            <button 
+              onClick={() => handleDeleteTag(tag.id)} 
+              className="hover:bg-black/20 rounded-full w-3 h-3 flex items-center justify-center"
+            >
+              ✕
+            </button>
           </span>
         ))}
         <button 

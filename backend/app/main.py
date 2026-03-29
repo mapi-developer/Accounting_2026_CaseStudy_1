@@ -102,3 +102,22 @@ def link_tag_to_document(document_id: int, tag_id: int, db: Session = Depends(da
     if not updated_doc:
         raise HTTPException(status_code=404, detail="Document or Tag not found")
     return updated_doc
+
+@app.delete("/comments/{comment_id}")
+def delete_comment_endpoint(comment_id: int, db: Session = Depends(database.get_db)):
+    if not crud.delete_comment(db, comment_id):
+        raise HTTPException(status_code=404, detail="Comment not found")
+    return {"message": "Comment deleted"}
+
+@app.delete("/documents/{document_id}/tags/{tag_id}", response_model=schemas.Document)
+def delete_tag_link(document_id: int, tag_id: int, db: Session = Depends(database.get_db)):
+    updated_doc = crud.remove_tag_from_document(db, document_id, tag_id)
+    if not updated_doc:
+        raise HTTPException(status_code=404, detail="Link not found")
+    return updated_doc
+
+@app.delete("/tags/{tag_id}")
+def delete_global_tag(tag_id: int, db: Session = Depends(database.get_db)):
+    if not crud.delete_tag_globally(db, tag_id):
+        raise HTTPException(status_code=404, detail="Tag not found")
+    return {"message": "Tag deleted globally"}

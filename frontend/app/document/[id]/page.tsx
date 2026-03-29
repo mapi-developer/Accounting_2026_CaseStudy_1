@@ -21,6 +21,16 @@ export default function DocumentPage() {
   const [document, setDocument] = useState<any>(null);
   const [newComment, setNewComment] = useState("");
 
+  const handleDeleteComment = async (commentId: number) => {
+    const res = await fetch(`http://localhost:8000/comments/${commentId}`, { method: "DELETE" });
+    if (res.ok) {
+      setDocument({
+        ...document,
+        comments: document.comments.filter((c: any) => c.id !== commentId)
+      });
+    }
+  };
+
   useEffect(() => {
     if (!documentId) return;
     
@@ -94,9 +104,15 @@ export default function DocumentPage() {
               <p className="text-sm text-gray-400 italic">No notes yet.</p>
             ) : (
               document.comments.map((comment: any) => (
-                <div key={comment.id} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <div key={comment.id} className="group bg-gray-50 p-3 rounded-lg border border-gray-100 relative">
                   <p className="text-sm text-gray-800">{comment.content}</p>
-                  <p className="text-xs text-gray-400 mt-2">{new Date(comment.created_at).toLocaleDateString()}</p>
+                  {/* Delete Comment Button */}
+                  <button 
+                    onClick={() => handleDeleteComment(comment.id)}
+                    className="absolute top-2 right-2 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all"
+                  >
+                    ✕
+                  </button>
                 </div>
               ))
             )}
