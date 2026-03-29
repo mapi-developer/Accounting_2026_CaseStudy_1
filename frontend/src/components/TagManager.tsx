@@ -23,14 +23,14 @@ export default function TagManager({
 
   // Fetch all available tags created in the system
   const fetchTags = async () => {
-    const res = await fetch("http://16.171.7.91:8000/tags/");
+    const res = await fetch("https://api.matveipisarev.me/tags/");
     if (res.ok) setAllTags(await res.json());
   };
 
   useEffect(() => { fetchTags(); }, []);
 
   const handleDeleteTag = async (tagId: number) => {
-    const res = await fetch(`http://16.171.7.91:8000/documents/${documentId}/tags/${tagId}`, {
+    const res = await fetch(`https://api.matveipisarev.me/documents/${documentId}/tags/${tagId}`, {
       method: "DELETE",
     });
 
@@ -49,7 +49,7 @@ export default function TagManager({
     if (!newTagName.trim()) return;
 
     // 1. Create the tag if it doesn't exist
-    const tagRes = await fetch("http://16.171.7.91:8000/tags/", {
+    const tagRes = await fetch("https://api.matveipisarev.me/tags/", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: newTagName, color: "#3b82f6" }),
@@ -58,7 +58,7 @@ export default function TagManager({
     const tagData = await tagRes.json();
     
     // 2. Link this tag to the current document
-    const linkRes = await fetch(`http://16.171.7.91:8000/documents/${documentId}/tags/${tagData.id}`, {
+    const linkRes = await fetch(`https://api.matveipisarev.me/documents/${documentId}/tags/${tagData.id}`, {
       method: "POST",
     });
 
@@ -71,7 +71,7 @@ export default function TagManager({
   };
 
   const handleAttachExisting = async (tagId: number) => {
-    const res = await fetch(`http://16.171.7.91:8000/documents/${documentId}/tags/${tagId}`, {
+    const res = await fetch(`https://api.matveipisarev.me/documents/${documentId}/tags/${tagId}`, {
       method: "POST",
     });
     if (res.ok) {

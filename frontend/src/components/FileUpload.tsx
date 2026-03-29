@@ -17,7 +17,7 @@ export default function FileUpload({ onUploadSuccess }: { onUploadSuccess: () =>
     });
 
     try {
-      const response = await fetch("http://16.171.7.91:8000/upload/", {
+      const response = await fetch("https://api.matveipisarev.me/upload/", {
         method: "POST",
         body: formData,
       });
