@@ -7,6 +7,7 @@ import { Worker, Viewer } from '@react-pdf-viewer/core';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import TagManager from "@/components/TagManager";
 
 export default function DocumentPage() {
   const params = useParams();
@@ -77,11 +78,11 @@ export default function DocumentPage() {
         {/* Tags Section */}
         <div className="mb-8 border-b pb-6">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Tags</h3>
-          <div className="flex gap-2">
-             <button className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-gray-200 transition-colors">
-               + Add Tag
-             </button>
-          </div>
+          <TagManager 
+            documentId={document.id} 
+            existingTags={document.tags || []} 
+            onTagAdded={(updatedDoc) => setDocument(updatedDoc)} 
+          />
         </div>
 
         {/* Comments Section */}

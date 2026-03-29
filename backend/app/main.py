@@ -79,3 +79,21 @@ def read_document(document_id: int, db: Session = Depends(database.get_db)):
 @app.post("/documents/{document_id}/comments", response_model=schemas.Comment)
 def add_comment(document_id: int, comment: schemas.CommentCreate, db: Session = Depends(database.get_db)):
     return crud.create_comment(db=db, document_id=document_id, comment=comment)
+
+@app.get("/tags/", response_model=List[schemas.Tag])
+def read_tags(db: Session = Depends(database.get_db)):
+    return crud.get_all_tags(db)
+
+@app.post("/tags/", response_model=schemas.Tag)
+def create_tag(tag: schemas.TagCreate, db: Session = Depends(database.get_db)):
+    db_tag = crud.get_tag_by_name(db, name=tag.name)
+    if db_tag:
+        raise HTTPException(status_code=400, detail="Tag already exists")
+    return crud.create_tag(db=db, tag=tag)
+
+@app.post("/documents/{document_id}/tags/{tag_id}", response_model=schemas.Document)
+def link_tag_to_document(document_id: int, tag_id: int, db: Session = Depends(database.get_db)):
+    updated_doc = crud.add_tag_to_document(db, document_id, tag_id)
+    if not updated_doc:
+        raise HTTPException(status_code=404, detail="Document or Tag not found")
+    return updated_doc

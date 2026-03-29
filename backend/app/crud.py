@@ -47,3 +47,26 @@ def delete_document(db: Session, document_id: int):
         db.commit()
         return file_path
     return None
+
+def get_tag_by_name(db: Session, name: str):
+    return db.query(models.Tag).filter(models.Tag.name == name).first()
+
+def create_tag(db: Session, tag: schemas.TagCreate):
+    db_tag = models.Tag(name=tag.name, color=tag.color)
+    db.add(db_tag)
+    db.commit()
+    db.refresh(db_tag)
+    return db_tag
+
+def add_tag_to_document(db: Session, document_id: int, tag_id: int):
+    document = db.query(models.Document).filter(models.Document.id == document_id).first()
+    tag = db.query(models.Tag).filter(models.Tag.id == tag_id).first()
+    
+    if document and tag:
+        document.tags.append(tag)
+        db.commit()
+        db.refresh(document)
+    return document
+
+def get_all_tags(db: Session):
+    return db.query(models.Tag).all()
