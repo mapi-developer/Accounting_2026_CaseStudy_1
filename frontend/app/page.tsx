@@ -22,7 +22,7 @@ export default function Home() {
     const tagArray = tagFilter.split(",").map(t => t.trim()).filter(t => t !== "");
     const tagParams = tagArray.map(t => `tags=${t}`).join("&");
     
-    const url = `http://localhost:8000/documents/?search=${query}&${tagParams}`;
+    const url = `http://16.171.7.91:8000/documents/?search=${query}&${tagParams}`;
     
     try {
       const res = await fetch(url);
@@ -41,7 +41,7 @@ export default function Home() {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this document?")) return;
-    const res = await fetch(`http://localhost:8000/documents/${id}`, { method: "DELETE" });
+    const res = await fetch(`http://16.171.7.91:8000/documents/${id}`, { method: "DELETE" });
     if (res.ok) fetchDocs();
   };
 

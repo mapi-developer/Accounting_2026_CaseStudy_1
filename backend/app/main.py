@@ -18,7 +18,7 @@ app = FastAPI(title="Accounting Case Study API")
 # Allow Next.js frontend to communicate with this backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"], 
+    allow_origins=["http://16.171.7.91:3000"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

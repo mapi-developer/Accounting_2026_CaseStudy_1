@@ -23,7 +23,7 @@ export default function DocumentPage() {
 
   useEffect(() => {
     if (!documentId) return;
-    fetch(`http://localhost:8000/documents/${documentId}`)
+    fetch(`http://16.171.7.91:8000/documents/${documentId}`)
       .then((res) => res.json())
       .then((data) => setDocument(data))
       .catch((err) => console.error("Error fetching document:", err));
@@ -32,7 +32,7 @@ export default function DocumentPage() {
   // --- STRICT PRESERVATION: Note Saving Logic ---
   const handleAddComment = async () => {
     if (!newComment.trim() || !documentId) return;
-    const res = await fetch(`http://localhost:8000/documents/${documentId}/comments`, {
+    const res = await fetch(`http://16.171.7.91:8000/documents/${documentId}/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content: newComment }),
@@ -45,7 +45,7 @@ export default function DocumentPage() {
   };
 
   const handleDeleteComment = async (commentId: number) => {
-    const res = await fetch(`http://localhost:8000/comments/${commentId}`, { method: "DELETE" });
+    const res = await fetch(`http://16.171.7.91:8000/comments/${commentId}`, { method: "DELETE" });
     if (res.ok) {
       setDocument({
         ...document,
@@ -58,7 +58,7 @@ export default function DocumentPage() {
   const handleDeleteDocument = async () => {
     if (!confirm("Are you sure you want to completely delete this document and all its notes?")) return;
     
-    const res = await fetch(`http://localhost:8000/documents/${documentId}`, {
+    const res = await fetch(`http://16.171.7.91:8000/documents/${documentId}`, {
       method: "DELETE",
     });
 
@@ -77,7 +77,7 @@ export default function DocumentPage() {
     );
   }
 
-  const pdfUrl = `http://localhost:8000/files/${document.filename}`;
+  const pdfUrl = `http://16.171.7.91:8000/files/${document.filename}`;
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gray-50 overflow-hidden">
